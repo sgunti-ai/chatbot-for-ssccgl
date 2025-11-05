@@ -1,0 +1,84 @@
+import chromadb
+from sentence_transformers import SentenceTransformer
+import os
+from typing import List, Dict, Optional
+
+class ChromaClient:
+    def __init__(self):
+        self.model = SentenceTransformer("all-MiniLM-L6-v2")
+        self.client = chromadb.PersistentClient(path="./chroma_db")
+        self.collection = self.client.get_or_create_collection(
+            name="ssc_questions",
+            metadata={"description": "SSC Exam Questions Database"}
+        )
+    
+    def insert_question(self, question_data: Dict):
+        """Insert a question into ChromaDB"""
+        embedding = self.model.encode([question_data['text']]).tolist()[0]
+        
+        self.collection.add(
+            documents=[question_data['text']],
+            embeddings=[embedding],
+            metadatas=[{
+                "options": question_data.get('options', []),
+                "correct_answer": question_data.get('correct_answer', ''),
+                "subject": question_data.get('subject', 'General'),
+                "year": question_data.get('year', 2024),
+                "paper_type": question_data.get('paper_type', 'CGL')
+            }],
+            ids=[question_data['id']]
+        )
+    
+    def semantic_search(self, query: str, top_k: int = 5, subject: Optional[str] = None):
+        """Semantic search in ChromaDB"""
+        query_embedding = self.model.encode([query]).tolist()[0]
+        
+        if subject:
+            results = self.collection.query(
+                query_embeddings=[query_embedding],
+                n_results=top_k,
+                where={"subject": {"$eq": subject}}
+            )
+        else:
+            results = self.collection.query(
+                query_embeddings=[query_embedding],
+                n_results=top_k
+            )
+        
+        matches = []
+        for i in range(len(results['documents'][0])):
+            matches.append({
+                "question": results['documents'][0][i],
+                "options": results['metadatas'][0][i].get('options', []),
+                "correct_answer": results['metadatas'][0][i].get('correct_answer', ''),
+                "subject": results['metadatas'][0][i].get('subject', ''),
+                "similarity_score": 1 - results['distances'][0][i] if 'distances' in results else 0.8,
+                "question_id": results['ids'][0][i]
+            })
+        
+        return matches
+    
+    def batch_insert_questions(self, questions: List[Dict]):
+        """Batch insert questions"""
+        documents = []
+        embeddings = []
+        metadatas = []
+        ids = []
+        
+        for question in questions:
+            documents.append(question['text'])
+            embeddings.append(self.model.encode([question['text']]).tolist()[0])
+            metadatas.append({
+                "options": question.get('options', []),
+                "correct_answer": question.get('correct_answer', ''),
+                "subject": question.get('subject', 'General'),
+                "year": question.get('year', 2024)
+            })
+            ids.append(question['id'])
+        
+        self.collection.add(
+            documents=documents,
+            embeddings=embeddings,
+            metadatas=metadatas,
+            ids=ids
+        )
