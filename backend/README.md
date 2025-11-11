@@ -98,3 +98,14 @@ Scale Services (if needed):
 
 cd backend
 docker-compose -f docker-compose.backend.yml up -d --scale backend=2
+
+Debugging
+---------
+
+You can enable verbose parser logs locally by setting the env var `SSC_DEBUG` to a
+truthy value (1/true/yes). Example (PowerShell):
+
+```powershell
+$env:SSC_DEBUG = 'true'
+uvicorn app.main:app --reload
+```
