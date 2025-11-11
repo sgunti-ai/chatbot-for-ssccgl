@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Upload, FileText, AlertCircle, CheckCircle } from 'lucide-react';
+import TextParser from './TextParser';
 
 const UploadPanel = () => {
   const [uploading, setUploading] = useState(false);
@@ -89,7 +90,7 @@ const UploadPanel = () => {
           </label>
         </div>
 
-        {/* Upload Status */}
+  {/* Upload Status */}
         {uploadStatus && (
           <div className={`mt-4 p-4 rounded-lg ${
             uploadStatus.type === 'success' 
@@ -112,6 +113,11 @@ const UploadPanel = () => {
             </div>
           </div>
         )}
+
+        {/* Quick Parse (manual text input) */}
+        <div className="mt-6">
+          <TextParser />
+        </div>
 
         {/* Instructions */}
         <div className="mt-8">
