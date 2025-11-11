@@ -5,6 +5,7 @@ import TextParser from './TextParser';
 const UploadPanel = () => {
   const [uploading, setUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState(null);
+  const [mode, setMode] = useState('upload'); // 'upload' | 'parse'
 
   const handleFileUpload = async (event) => {
     const file = event.target.files[0];
@@ -53,8 +54,35 @@ const UploadPanel = () => {
       </div>
 
       <div className="p-6">
+        {/* Mode Toggle */}
+        <div className="mb-4 flex items-center space-x-3" role="tablist" aria-label="Upload or Quick Parse">
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'upload'}
+            onClick={() => setMode('upload')}
+            className={`px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
+              mode === 'upload' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-800'
+            }`}
+          >
+            Upload PDF
+          </button>
+          <button
+            type="button"
+            role="tab"
+            aria-selected={mode === 'parse'}
+            onClick={() => setMode('parse')}
+            className={`px-3 py-1 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-400 ${
+              mode === 'parse' ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-800'
+            }`}
+          >
+            Quick Parse
+          </button>
+        </div>
+
         {/* Upload Area */}
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors">
+        <div className={`${mode === 'upload' ? '' : 'hidden'}`}>
+          <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-indigo-400 transition-colors">
           <input
             type="file"
             id="file-upload"
@@ -90,8 +118,8 @@ const UploadPanel = () => {
           </label>
         </div>
 
-  {/* Upload Status */}
-        {uploadStatus && (
+          {/* Upload Status */}
+          {uploadStatus && (
           <div className={`mt-4 p-4 rounded-lg ${
             uploadStatus.type === 'success' 
               ? 'bg-green-50 border border-green-200' 
@@ -112,10 +140,11 @@ const UploadPanel = () => {
               </span>
             </div>
           </div>
-        )}
+          )}
+        </div>
 
         {/* Quick Parse (manual text input) */}
-        <div className="mt-6">
+        <div className={`${mode === 'parse' ? '' : 'hidden'} mt-2`}>
           <TextParser />
         </div>
 
