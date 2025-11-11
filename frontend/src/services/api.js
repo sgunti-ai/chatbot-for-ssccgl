@@ -38,6 +38,13 @@ export const uploadQuestionPaper = async (file, namespace) => {
   return response.data;
 };
 
+export const parseText = async (text) => {
+  const response = await api.post('/parse-text', {
+    text
+  });
+  return response.data;
+};
+
 export const healthCheck = async () => {
   const response = await api.get('/health');
   return response.data;
